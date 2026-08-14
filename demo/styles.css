@@ -1,0 +1,188 @@
+/* Shared by both demos so the React and Vue versions differ only in framework
+   code — which is what makes them diffable side by side. */
+:root {
+  --bg: #ffffff;
+  --fg: #16161a;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --accent: #4338ca;
+  --agent-bg: #f4f4f6;
+  --error-bg: #fef2f2;
+  --error-fg: #991b1b;
+  --warn-bg: #fffbeb;
+  --warn-fg: #92400e;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f0f11;
+    --fg: #ededf0;
+    --muted: #9ca3af;
+    --line: #26262b;
+    --accent: #a5b4fc;
+    --agent-bg: #1a1a1f;
+    --error-bg: #2a1416;
+    --error-fg: #fca5a5;
+    --warn-bg: #2a2113;
+    --warn-fg: #fcd34d;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font:
+    15px/1.55 ui-sans-serif,
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+.app {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 6rem;
+}
+
+header h1 {
+  font-size: 1.1rem;
+  margin: 0 0 0.25rem;
+}
+
+header p {
+  margin: 0 0 1.25rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.msg {
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.5rem;
+  margin-bottom: 0.6rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.msg.user {
+  background: var(--accent);
+  color: #fff;
+  margin-left: 15%;
+}
+
+.msg.assistant {
+  background: var(--agent-bg);
+}
+
+.msg.error {
+  background: var(--error-bg);
+  color: var(--error-fg);
+}
+
+.thinking {
+  font-style: italic;
+  color: var(--muted);
+  font-size: 0.85rem;
+  border-left: 2px solid var(--line);
+  padding-left: 0.6rem;
+  margin: 0.4rem 0;
+  white-space: pre-wrap;
+}
+
+.todos {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.status {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0.5rem 0;
+}
+
+/* The cold-start case. An agent can take minutes to wake, so this state has to
+   be visibly different from ordinary latency or the app looks hung. */
+.status.waking {
+  background: var(--warn-bg);
+  color: var(--warn-fg);
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.4rem;
+}
+
+.banner {
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  background: var(--error-bg);
+  color: var(--error-fg);
+}
+
+.banner.billing {
+  background: var(--warn-bg);
+  color: var(--warn-fg);
+}
+
+form {
+  display: flex;
+  gap: 0.5rem;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.9rem 1rem;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+
+form > * {
+  font: inherit;
+}
+
+input[type='text'] {
+  flex: 1;
+  max-width: 38rem;
+  margin: 0 auto;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+button {
+  padding: 0.55rem 1rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button.stop {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--line);
+}
+
+select {
+  padding: 0.55rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  background: var(--bg);
+  color: var(--fg);
+  max-width: 11rem;
+}
