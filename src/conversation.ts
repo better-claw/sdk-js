@@ -189,6 +189,11 @@ export class Conversation {
           if (message.content || live?.content || live?.thinking || live?.todos?.length) {
             clearTimeout(wakingTimer);
             this.emitStatus('streaming');
+          } else {
+            // In flight but silent. `send()` has already said `sending`; this is
+            // what makes `resume()` report it too, so a chat reattached after a
+            // reload doesn't sit on `idle` while the agent is mid-turn.
+            this.emitStatus('sending');
           }
           return;
         }

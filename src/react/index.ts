@@ -72,8 +72,17 @@ export function useChat(chatId: string | null | undefined): UseChatResult {
   const state = chatId ? snapshot.get(chatId) : undefined;
 
   useEffect(() => {
-    if (!conversation) return;
+    if (!conversation) {
+      setStatus('idle');
+      return;
+    }
     setError(null);
+    // Seed from the conversation's CURRENT status rather than waiting for an
+    // event. `emitStatus` only fires on a change and a fresh Conversation starts
+    // at 'idle', so switching from a busy chat to an idle one would otherwise
+    // leave this stuck on the previous chat's status — there is no event to
+    // correct it.
+    setStatus(conversation.status);
     const off = conversation.on('status', setStatus);
     let cancelled = false;
 

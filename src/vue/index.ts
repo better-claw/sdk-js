@@ -84,9 +84,17 @@ export function useChat(chatId: MaybeRefOrGetter<string | null | undefined>): Us
       detachStatus?.();
       detachStatus = null;
       error.value = null;
-      if (!id) return;
+      if (!id) {
+        status.value = 'idle';
+        return;
+      }
 
       const conversation = client.conversation(id);
+      // Seed from the conversation's CURRENT status rather than waiting for an
+      // event. `emitStatus` only fires on a change and a fresh Conversation
+      // starts at 'idle', so switching from a busy chat to an idle one would
+      // otherwise leave this stuck on the previous chat's status.
+      status.value = conversation.status;
       detachStatus = conversation.on('status', (s) => {
         status.value = s;
       });

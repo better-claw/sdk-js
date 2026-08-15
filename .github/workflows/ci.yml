@@ -40,7 +40,11 @@ jobs:
       - name: Assert no key handling in browser bundles
         run: |
           set -e
-          for f in dist/index.js dist/index.cjs demo/*/dist/assets/*.js; do
+          # Every published bundle plus the demo output — not just the core
+          # entry, so a future accidental import from server.ts into an adapter
+          # fails here rather than shipping.
+          for f in dist/index.js dist/index.cjs dist/react.js dist/react.cjs \
+                   dist/vue.js dist/vue.cjs demo/*/dist/assets/*.js; do
             if grep -qE 'ApiKeyAuth|server-side secret' "$f"; then
               echo "::error file=$f::API key handling leaked into a browser bundle"
               exit 1
