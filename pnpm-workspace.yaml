@@ -1,0 +1,5 @@
+# The SDK itself is the workspace root, so `demo/*` can depend on it with
+# `workspace:*` and always builds against the working tree rather than a
+# published version.
+packages:
+  - 'demo/*'

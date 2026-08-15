@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+
+      - run: pnpm build
+
+      # The demos are the cheap guard against an adapter API change breaking
+      # them silently — they compile against the freshly built dist, so a
+      # renamed hook or changed hook shape fails here rather than in a user's app.
+      - run: pnpm --filter @better-claw/demo-react build
+      - run: pnpm --filter @better-claw/demo-vue build
+
+      # The custody rule this SDK is built around, asserted mechanically: the
+      # durable API key must be unreachable from anything a browser loads.
+      - name: Assert no key handling in browser bundles
+        run: |
+          set -e
+          # Every published bundle plus the demo output — not just the core
+          # entry, so a future accidental import from server.ts into an adapter
+          # fails here rather than shipping.
+          for f in dist/index.js dist/index.cjs dist/react.js dist/react.cjs \
+                   dist/vue.js dist/vue.cjs demo/*/dist/assets/*.js; do
+            if grep -qE 'ApiKeyAuth|server-side secret' "$f"; then
+              echo "::error file=$f::API key handling leaked into a browser bundle"
+              exit 1
+            fi
+          done
+          echo "browser bundles are clean"

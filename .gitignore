@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.DS_Store
+.env
+.env.local
+# demo build output
+demo/*/.next/
+demo/*/.nuxt/
+demo/*/.output/
+demo/*/dist/
+# playwright
+test-results/
+playwright-report/
