@@ -7,6 +7,13 @@ conversation state; this keeps your UI thin.
 npm install @better-claw/sdk
 ```
 
+## Documentation
+
+[`docs/`](docs/) has the full guides and API reference — [getting started](docs/getting-started.md),
+[authentication](docs/authentication.md), [React](docs/react.md), [Vue](docs/vue.md),
+[streaming and state](docs/streaming-and-state.md), [errors](docs/errors.md),
+[testing](docs/testing.md), and the [API reference](docs/api-reference.md).
+
 ## The idea
 
 Chat state lives on the hub, not in your app. The SDK subscribes to the hub's
@@ -45,7 +52,7 @@ export async function POST() {
 import { BetterClawClient, SessionTokenAuth } from '@better-claw/sdk';
 
 const client = new BetterClawClient({
-  baseUrl: 'https://api.betterclaw.com',
+  baseUrl: 'https://api.betterclaw.io',
   workspaceId,
   auth: new SessionTokenAuth(async () => (await fetch('/api/bc-token', { method: 'POST' })).json()),
 });
