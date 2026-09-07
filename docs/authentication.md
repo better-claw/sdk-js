@@ -62,13 +62,16 @@ export async function POST() {
 }
 ```
 
-Two things this route should do that the one-liner above skips, both of which
-[`demo/token-route.ts`](../demo/token-route.ts) demonstrates:
+Two things this route should do that the one-liner above skips:
 
 - **Authenticate the caller.** This route mints a credential for your BetterClaw
   workspace; whoever can call it can talk to your agents.
 - **Re-surface the hub's status on failure**, so a revoked key reads as `401` in the
   browser rather than a generic `500`.
+
+[`demo/token-route.ts`](../demo/token-route.ts) demonstrates status handling.
+It is a local development route; add your application's caller authentication
+when using the pattern in your own backend.
 
 ```ts
 try {

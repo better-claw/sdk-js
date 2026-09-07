@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { PaymentRequiredError, type SdkSessionToken } from '@better-claw/sdk';
+import { NotFoundError, PaymentRequiredError, type SdkSessionToken } from '@better-claw/sdk';
 import { useAgents, useBetterClaw, useChat } from '@better-claw/sdk/react';
+import { FILE_DEMO_PROMPT } from '../../files';
+import { Deliverables } from './Deliverables';
 
 /**
  * The whole chat UI.
@@ -13,8 +15,12 @@ export function Chat({ session }: { session: SdkSessionToken }) {
   const client = useBetterClaw();
   const { agents, error: agentsError } = useAgents(session.workspaceId);
   const [chatId, setChatId] = useState<string | null>(() => localStorage.getItem('bc-demo-chat'));
-  const { messages, status, thinking, todos, error, send, stop } = useChat(chatId);
+  const { messages, status, thinking, todos, loading, error: chatError, send, stop } = useChat(chatId);
   const [draft, setDraft] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [sendError, setSendError] = useState<Error | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const error = sendError ?? chatError;
   // Which agent a new chat goes to. A workspace usually has several, and they
   // are not interchangeable — an offline one simply never answers.
   const [agentId, setAgentId] = useState('');
@@ -24,28 +30,47 @@ export function Chat({ session }: { session: SdkSessionToken }) {
   // rehydrates this chat and reattaches to any turn still running.
   useEffect(() => {
     if (chatId) localStorage.setItem('bc-demo-chat', chatId);
+    else localStorage.removeItem('bc-demo-chat');
   }, [chatId]);
 
-  async function submit(e: React.FormEvent) {
+  useEffect(() => {
+    if (chatId && error instanceof NotFoundError) {
+      setChatId(null);
+      setSendError(null);
+      setNotice('The saved chat is no longer available. Your next message will start a new chat.');
+    }
+  }, [chatId, error]);
+
+  const busy = submitting || status === 'sending' || status === 'waking' || status === 'streaming';
+
+  function submit(e: React.FormEvent) {
     e.preventDefault();
     const text = draft.trim();
-    if (!text) return;
+    if (!text || busy || loading || !agent) return;
     setDraft('');
-
-    if (!chatId) {
-      if (!agent) return;
-      const { chat, conversation } = await client.startConversation({ agentId: agent.id, agentName: agent.name });
-      setChatId(chat.id);
-      // Send on the conversation just created, NOT the hook's `send`: that one
-      // is bound to the chatId from this render, which is still null. The hook
-      // picks the turn up from the shared store on the next render.
-      await conversation.send(text);
-      return;
-    }
-    await send(text);
+    void sendText(text);
   }
 
-  const busy = status === 'sending' || status === 'waking' || status === 'streaming';
+  async function sendText(text: string) {
+    if (busy || loading || !agent) return;
+    setSubmitting(true);
+    setSendError(null);
+    setNotice(null);
+    try {
+      if (!chatId) {
+        const { chat, conversation } = await client.startConversation({ agentId: agent.id, agentName: agent.name });
+        setChatId(chat.id);
+        // The hook's send is still bound to the previous chatId in this render.
+        await conversation.send(text);
+      } else {
+        await send(text);
+      }
+    } catch (err) {
+      setSendError(err instanceof Error ? err : new Error('Could not send the message.'));
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <div className="app">
@@ -56,6 +81,20 @@ export function Chat({ session }: { session: SdkSessionToken }) {
           {client.connected ? 'live' : 'offline'}
         </p>
       </header>
+
+      <section className="file-demo" aria-labelledby="file-demo-title">
+        <h2 id="file-demo-title">Generate a file</h2>
+        <p>Create a sample project plan with the agent, then download the CSV from its reply.</p>
+        <button type="button" disabled={busy || loading || !agent} onClick={() => sendText(FILE_DEMO_PROMPT)}>
+          Generate a CSV
+        </button>
+      </section>
+
+      {notice && (
+        <p className="status" role="status">
+          {notice}
+        </p>
+      )}
 
       {/* Without this, a failure to load agents renders as an empty list and an
           inert composer, which looks like an empty workspace rather than a fault. */}
@@ -71,6 +110,7 @@ export function Chat({ session }: { session: SdkSessionToken }) {
         <div key={m.id} className={`msg ${m.role} ${m.status === 'error' ? 'error' : ''}`}>
           {m.content || (m.status === 'streaming' ? '…' : '')}
           {m.status === 'error' && m.errorMessage ? `\n${m.errorMessage}` : ''}
+          <Deliverables message={m} />
         </div>
       ))}
 
@@ -95,7 +135,7 @@ export function Chat({ session }: { session: SdkSessionToken }) {
         {/* Locked once the chat exists — a chat belongs to one agent. */}
         <select
           value={agent?.id ?? ''}
-          disabled={!!chatId || !agents.length}
+          disabled={busy || !!chatId || !agents.length}
           onChange={(e) => setAgentId(e.target.value)}
           aria-label="Agent"
         >
@@ -109,7 +149,7 @@ export function Chat({ session }: { session: SdkSessionToken }) {
           type="text"
           value={draft}
           placeholder={agents.length ? 'Ask the agent…' : 'No agents in this workspace'}
-          disabled={!agents.length}
+          disabled={loading || !agents.length}
           onChange={(e) => setDraft(e.target.value)}
         />
         {busy ? (
@@ -117,7 +157,7 @@ export function Chat({ session }: { session: SdkSessionToken }) {
             Stop
           </button>
         ) : (
-          <button type="submit" disabled={!draft.trim()}>
+          <button type="submit" disabled={loading || !draft.trim()}>
             Send
           </button>
         )}

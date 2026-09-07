@@ -104,7 +104,7 @@ Three things about that `send` are worth knowing up front:
   minutes, or eleven if the wake lands during a shutdown. The status goes to `waking`
   after 10s of silence so you can say so in your UI.
 - **It resolves rather than rejects on an agent-side failure.** The returned message has
-  `status: 'error'` and an `errorMessage`. Only `TurnTimeoutError` rejects. See
+  `status: 'error'` and an `errorMessage`. Dispatch failures and `TurnTimeoutError` reject. See
   [Errors](errors.md).
 - **`delta` gives you the whole text so far, not a chunk.** Frames are cumulative —
   assign, never append. See [Streaming and state](streaming-and-state.md).
@@ -138,11 +138,15 @@ twice, each with the server-side token route wired up as Vite middleware.
 
 ```bash
 pnpm install && pnpm build
-BC_API_KEY=bc_sk_… BC_API_URL=https://api.betterclaw.io pnpm --filter @better-claw/demo-react dev
+export BC_API_KEY="bc_sk_YOUR_KEY"
+export BC_API_URL="https://your-api-host"
+export VITE_BC_API_URL="$BC_API_URL"
+pnpm --filter @better-claw/demo-react dev
 ```
 
-They are the fastest way to see the two behaviours you can only observe in a browser: the
-cold-start `waking` state, and resuming a turn after a mid-stream reload.
+Open http://localhost:5173 and click **Generate a CSV** to create and download a
+file. The [shared demo guide](../demo/README.md) covers API setup, the Vue
+variant, saved-chat recovery, cold starts, and resuming after reload.
 
 ## Where to go next
 

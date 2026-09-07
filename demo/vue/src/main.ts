@@ -1,4 +1,4 @@
-import { createApp, h, ref } from 'vue';
+import { createApp, h } from 'vue';
 import { BetterClawClient, SessionTokenAuth, type SdkSessionToken } from '@better-claw/sdk';
 import { createBetterClaw } from '@better-claw/sdk/vue';
 import Chat from './Chat.vue';
@@ -14,8 +14,6 @@ async function fetchToken(): Promise<SdkSessionToken> {
   return res.json();
 }
 
-const error = ref<string | null>(null);
-
 // One token fetch up front, only to learn which workspace the key is bound to.
 fetchToken()
   .then((session) => {
@@ -29,6 +27,5 @@ fetchToken()
       .mount('#app');
   })
   .catch((err: Error) => {
-    error.value = err.message;
-    createApp(() => h('div', { class: 'app' }, h('div', { class: 'banner' }, error.value))).mount('#app');
+    createApp(() => h('div', { class: 'app' }, h('div', { class: 'banner' }, err.message))).mount('#app');
   });

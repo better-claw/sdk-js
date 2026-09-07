@@ -117,11 +117,18 @@ export class Conversation {
    * promise settles when a frame for THAT id reaches a terminal state.
    */
   async send(content: string, files?: File[]): Promise<ChatMessage> {
-    await this.ensureConnected();
-    this.emitStatus('sending');
+    try {
+      await this.ensureConnected();
+      this.emitStatus('sending');
 
-    const { assistantMessage } = await this.chats.sendMessage(this.chatId, content, files);
-    return this.awaitTurn(assistantMessage.id);
+      const { assistantMessage } = await this.chats.sendMessage(this.chatId, content, files);
+      return await this.awaitTurn(assistantMessage.id);
+    } catch (error) {
+      // A rejected POST never creates a turn, so no stream event will clear
+      // `sending`. Publish the failure before handing it back to the caller.
+      this.emitStatus('error');
+      throw error;
+    }
   }
 
   /**

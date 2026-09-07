@@ -42,7 +42,7 @@ so it is structurally unreachable from a browser bundle rather than merely disco
 ## Also worth reading
 
 - [`../README.md`](../README.md) — the short version
-- [`../demo/react`](../demo/react) and [`../demo/vue`](../demo/vue) — the same chat app
-  built twice, including the server-side token route
+- [Demo guide](../demo/README.md) — React and Vue chat apps, live API setup,
+  generated-file downloads, and the server-side token route
 - [`../src/`](../src/) — the source carries dense comments explaining the protocol traps
   each design avoids; the guides here quote them

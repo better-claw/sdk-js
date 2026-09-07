@@ -128,8 +128,10 @@ test doubles (see [Testing](testing.md)).
 | `stop()`    | Cancels the in-flight turn. The hub finalizes it, so a terminal frame still arrives. No-op when idle                                                                                                                   |
 | `dispose()` | Drops listeners. The socket is client-wide and is not affected                                                                                                                                                         |
 
-**`send()` and `resume()` resolve with a `status: 'error'` message when the turn fails —
-they do not reject.** The only rejection is `TurnTimeoutError`. See [Errors](errors.md).
+`send()` and `resume()` resolve with a `status: 'error'` message for agent-side
+failures. `send()` rejects failed dispatches and sets the conversation status
+to `error`; `resume()` can reject failed history fetches. Both reject with
+`TurnTimeoutError` when the turn exceeds its deadline. See [Errors](errors.md).
 
 #### `ConversationStatus`
 
@@ -399,22 +401,47 @@ class ChatsResource {
   delete(chatId: string): Promise<unknown>;
   sendMessage(chatId: string, content: string, files?: File[]): Promise<SendMessageResult>;
   stopMessage(chatId: string, messageId: string): Promise<{ ok: boolean; stopped: boolean }>;
+  getDeliverable(
+    message: Pick<ChatMessage, 'chatId' | 'id' | 'deliverable'>,
+    index?: number,
+    options?: { signal?: AbortSignal },
+  ): Promise<File>;
   deliverableUrl(chatId: string, messageId: string, index: number): string;
 }
 ```
 
-| Method           | Endpoint                             | Notes                                                                                                                  |
-| ---------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| `create`         | `POST /chats`                        |                                                                                                                        |
-| `list`           | `GET /chats?workspaceId=`            |                                                                                                                        |
-| `get`            | `GET /chats/:id`                     | Chat plus full message history                                                                                         |
-| `update`         | `PATCH /chats/:id`                   |                                                                                                                        |
-| `delete`         | `DELETE /chats/:id`                  |                                                                                                                        |
-| `sendMessage`    | `POST /chats/:id/messages`           | Returns as soon as the rows are created — **not** when the agent has answered. `files` switches the body to `FormData` |
-| `stopMessage`    | `POST /chats/:id/messages/:mid/stop` | Idempotent — stopping an already-finished turn is a no-op, not an error                                                |
-| `deliverableUrl` | —                                    | Builds a URL for a produced file. The request needs the caller's credential                                            |
+| Method           | Endpoint                                | Notes                                                                                                                  |
+| ---------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `create`         | `POST /chats`                           |                                                                                                                        |
+| `list`           | `GET /chats?workspaceId=`               |                                                                                                                        |
+| `get`            | `GET /chats/:id`                        | Chat plus full message history                                                                                         |
+| `update`         | `PATCH /chats/:id`                      |                                                                                                                        |
+| `delete`         | `DELETE /chats/:id`                     |                                                                                                                        |
+| `sendMessage`    | `POST /chats/:id/messages`              | Returns as soon as the rows are created — **not** when the agent has answered. `files` switches the body to `FormData` |
+| `stopMessage`    | `POST /chats/:id/messages/:mid/stop`    | Idempotent — stopping an already-finished turn is a no-op, not an error                                                |
+| `getDeliverable` | `GET …/deliverables/:index?inline=true` | Fetches a message's generated file with the client's authentication; returns a `File`                                  |
+| `deliverableUrl` | —                                       | Builds a URL for a produced file. The request needs the caller's credential                                            |
 
 Use `client.conversation(id).send()` for a promise that resolves with the reply.
+
+`getDeliverable(message, index = 0)` fetches the selected generated file with the
+client's authentication and returns a standard `File`. The message can come from
+`useChat().messages`, a backend response, or `conversation.send()`.
+
+```ts
+const file = await client.chats.getDeliverable(message, 0);
+const text = await file.text(); // text files
+const bytes = await file.arrayBuffer(); // binary contents
+// file.name, file.type, file.size describe the fetched file.
+```
+
+It requests `GET /chats/:id/messages/:mid/deliverables/:index?inline=true`, which
+returns bytes through the hub instead of redirecting the browser to object
+storage. The hub's inline route supports files up to 50 MB. HTTP failures throw
+the usual SDK errors, including `NotFoundError` and `AuthError`; a 401 refreshes
+the credential and retries once. A missing deliverable or invalid index throws
+`RangeError` before a request is sent. Pass `{ signal }` as the third argument
+to cancel the request. This method works in browsers and Node 20+.
 
 #### `AgentsResource`
 
@@ -471,6 +498,7 @@ to correlate against.
 class HttpTransport {
   constructor(opts: { baseUrl: string; auth: AuthProvider; fetch?: typeof fetch });
   request<T>(path: string, opts?: RequestOptions): Promise<T>;
+  requestBlob(path: string, opts?: RequestOptions): Promise<Blob>;
   queryToken(): Promise<string>;
   get origin(): string;
 }
@@ -479,6 +507,10 @@ class HttpTransport {
 A thin `fetch` wrapper: auth header, query building, error normalization, and a single
 retry after a 401. Exported for advanced use — the resources are built on it — but most
 apps never touch it.
+
+`requestBlob()` reads a successful response as a `Blob`, preserving binary bytes
+and the response MIME type. It uses the same authentication, cancellation, 401
+retry, and typed errors as `request()`.
 
 | Behaviour       | Detail                                                                                                 |
 | --------------- | ------------------------------------------------------------------------------------------------------ |

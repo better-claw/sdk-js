@@ -35,7 +35,7 @@ interface ChatMessage {
 | -------------- | ------------------------------------------------------------------------------------------------------- |
 | `status`       | `'streaming'` while in flight. A failed turn ends at `'error'` — it is a message, not an exception      |
 | `content`      | The whole reply so far. Mirrored from streaming frames by the store, then replaced by the persisted row |
-| `deliverable`  | Files the turn produced; build a URL with `client.chats.deliverableUrl(chatId, messageId, index)`       |
+| `deliverable`  | Files the turn produced; fetch their content with `client.chats.getDeliverable(message, index)`         |
 | `errorMessage` | Present when `status === 'error'`. Partial `content` is preserved alongside it                          |
 | `turnIndex`    | Ordinal of the turn within the chat                                                                     |
 
