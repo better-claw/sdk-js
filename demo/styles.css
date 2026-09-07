@@ -61,6 +61,49 @@ header p {
   font-size: 0.85rem;
 }
 
+.file-demo {
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+}
+
+.file-demo h2 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.file-demo p {
+  margin: 0.35rem 0 0.75rem;
+  color: var(--muted);
+}
+
+.deliverables {
+  margin-top: 0.7rem;
+  white-space: normal;
+}
+
+.deliverables ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.deliverables button {
+  text-align: left;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+
+.deliverables [role='alert'] {
+  color: var(--error-fg);
+  font-size: 0.85rem;
+  margin-bottom: 0;
+}
+
 .msg {
   padding: 0.7rem 0.9rem;
   border-radius: 0.5rem;

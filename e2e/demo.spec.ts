@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { DEMO_URL, readDownloadText } from './helpers';
 
 /**
  * Browser e2e against a REAL stack — hub API, a live agent, and one of the
@@ -12,7 +13,6 @@ import { test, expect, type Page } from '@playwright/test';
  *   BC_DEMO_URL   demo origin      (default http://localhost:5173)
  *   BC_E2E_AGENT  agent to talk to (default "Content Writer")
  */
-const DEMO_URL = process.env.BC_DEMO_URL ?? 'http://localhost:5173';
 const AGENT = process.env.BC_E2E_AGENT ?? 'Content Writer';
 
 /** Agents can be cold — a stopped machine takes minutes to answer. */
@@ -68,6 +68,25 @@ test.describe('BetterClaw SDK demo', () => {
       /bc_sk_/.test(document.documentElement.outerHTML + JSON.stringify(Object.entries(localStorage))),
     );
     expect(leaked).toBe(false);
+  });
+
+  test('recovers a missing saved chat, generates a CSV and downloads the file', async ({ page }) => {
+    await openFreshChat(page);
+    // A deleted chat (or one from another API/workspace) can survive locally.
+    await page.evaluate((id) => localStorage.setItem('bc-demo-chat', id), crypto.randomUUID());
+    await page.reload({ waitUntil: 'networkidle' });
+    await expect(page.getByRole('status')).toContainText('saved chat is no longer available');
+    await page.selectOption('select', { label: AGENT });
+    await page.getByRole('button', { name: 'Generate a CSV', exact: true }).click();
+    const button = page.getByRole('button', { name: 'Download project-plan.csv', exact: true });
+    await expect(button).toBeVisible({ timeout: REPLY_TIMEOUT });
+
+    const event = page.waitForEvent('download');
+    await button.click();
+    const download = await event;
+    expect(download.suggestedFilename()).toBe('project-plan.csv');
+    expect(await readDownloadText(download)).toMatch(/"?Task"?,\s*"?Owner"?,\s*"?Status"?/i);
+    expect(await download.failure()).toBeNull();
   });
 
   /**

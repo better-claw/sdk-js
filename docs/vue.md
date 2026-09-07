@@ -168,6 +168,21 @@ function useBetterClaw(): BetterClawClient;
 Throws `useBetterClaw requires app.use(createBetterClaw(client))` when the plugin is not
 installed.
 
+Use the returned client to fetch generated files from an assistant message:
+
+```ts
+const client = useBetterClaw();
+
+async function readFile(message: ChatMessage, index = 0) {
+  const file = await client.chats.getDeliverable(message, index);
+  return file.text(); // Use file.arrayBuffer() for binary content.
+}
+```
+
+See [getDeliverable](api-reference.md#chatsresource) for authentication, file
+metadata, cancellation, and errors, or the
+[Vue download component](../demo/vue/src/Deliverables.vue) for saving the file.
+
 ## No `useWorkspaces`
 
 React has `useWorkspaces`; Vue does not. Call the resource directly:

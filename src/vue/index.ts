@@ -80,7 +80,11 @@ export function useChat(chatId: MaybeRefOrGetter<string | null | undefined>): Us
 
   const stopWatch = watch(
     () => toValue(chatId),
-    (id) => {
+    (id, _previousId, onCleanup) => {
+      let cancelled = false;
+      onCleanup(() => {
+        cancelled = true;
+      });
       detachStatus?.();
       detachStatus = null;
       error.value = null;
@@ -100,9 +104,9 @@ export function useChat(chatId: MaybeRefOrGetter<string | null | undefined>): Us
       });
       void conversation
         .hydrate()
-        .then(() => conversation.resume())
+        .then(() => (cancelled ? null : conversation.resume()))
         .catch((err: Error) => {
-          error.value = err;
+          if (!cancelled) error.value = err;
         });
     },
     { immediate: true },

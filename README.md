@@ -175,7 +175,7 @@ when you see it.
 ## API surface
 
 `client.chats` — `create`, `list`, `get`, `update`, `delete`, `sendMessage`,
-`stopMessage`, `deliverableUrl`
+`stopMessage`, `getDeliverable`, `deliverableUrl`
 `client.agents` — `list`, `get` · `client.workspaces` — `list`, `get`
 `client.conversation(id)` — `send`, `stop`, `resume`, `hydrate`, `on`, `messages`, `live`
 
@@ -183,12 +183,32 @@ An API key is bound to one workspace and optionally pinned to one agent; reads
 are filtered to that scope, so `workspaces.list()` returns only the bound
 workspace.
 
+## Reading generated files
+
+Pass an assistant message from `useChat().messages` or the backend to the SDK:
+
+```ts
+const file = await client.chats.getDeliverable(message, 0);
+const text = await file.text(); // CSV, JSON, Markdown, or other UTF-8 text
+// For binary files: const bytes = await file.arrayBuffer();
+```
+
+The zero-based index selects `message.deliverable[index]` and defaults to `0`.
+The result is a standard `File` with `name`, `type`, and `size`. Authentication,
+token refresh, and typed API errors use the existing client. The hub serves
+file bytes through its inline route, which supports files up to 50 MB.
+See the [React example](docs/react.md#rendering-deliverables) for reading content
+in your app and the [demo download component](demo/react/src/Deliverables.tsx)
+for saving the same file in the browser.
+
 ## Demos
 
 [`demo/react`](demo/react) and [`demo/vue`](demo/vue) are the same chat app
-built twice. Both include the server-side token route. Their READMEs cover the
-two behaviours you have to see in a browser: the cold-start `waking` state, and
-resuming after a mid-turn reload.
+built twice. Both include the server-side token route and a **Generate a CSV**
+example: ask the agent to create a project plan, then download the generated
+file from its reply. Downloads use the browser's session token and remain
+available after reload. The [shared demo guide](demo/README.md) covers setup,
+file handling, the cold-start `waking` state, and resuming after a mid-turn reload.
 
 ## Development
 

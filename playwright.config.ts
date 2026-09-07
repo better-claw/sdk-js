@@ -1,9 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Browser e2e for the demos. Deliberately NOT wired into CI: these need a
- * running hub API and an agent that actually answers, so they run on demand
- * with `pnpm test:e2e`.
+ * Browser e2e for the demos, run on demand with `pnpm test:e2e`.
+ * The file and recovery suites mock the hub; demo.spec.ts needs a live API
+ * and agent. All suites need a running demo — see docs/testing.md.
  */
 export default defineConfig({
   testDir: './e2e',

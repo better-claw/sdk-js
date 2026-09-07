@@ -49,6 +49,13 @@ export class HttpTransport {
     return this.parse<T>(res);
   }
 
+  /** Fetch file bytes with the same authentication, retry, and typed errors as JSON requests. */
+  async requestBlob(path: string, opts: RequestOptions = {}): Promise<Blob> {
+    const res = await this.send(path, opts, false);
+    if (!res.ok) await this.parse(res);
+    return res.blob();
+  }
+
   private async send(path: string, opts: RequestOptions, isRetry: boolean): Promise<Response> {
     const url = new URL(`${this.baseUrl}${path}`);
     for (const [k, v] of Object.entries(opts.query ?? {})) {

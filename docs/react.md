@@ -187,22 +187,59 @@ function useBetterClaw(): BetterClawClient;
 
 The client from context. Throws `useBetterClaw must be used inside <BetterClawProvider>`
 when there is no provider above. Use it for anything the hooks do not cover —
-`client.startConversation()`, `client.chats.deliverableUrl()`, `client.connected`.
+`client.startConversation()`, `client.chats.getDeliverable()`, `client.connected`.
 
 ## Rendering deliverables
 
+`client.chats.getDeliverable(message, index)` returns the selected generated
+file using the client's authentication. The index is zero-based and defaults
+to `0`. This component reads the first CSV deliverable as text; render it inside
+your existing `BetterClawProvider` and pass an assistant message from `useChat`:
+
 ```tsx
-{
-  message.deliverable?.map((d, i) => (
-    <a key={i} href={client.chats.deliverableUrl(chatId, message.id, i)}>
-      {d.filename}
-    </a>
-  ));
+import { useState } from 'react';
+import type { ChatMessage } from '@better-claw/sdk';
+import { useBetterClaw } from '@better-claw/sdk/react';
+
+function CsvContents({ message }: { message: ChatMessage }) {
+  const client = useBetterClaw();
+  const [text, setText] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  async function readFile() {
+    setError(null);
+    try {
+      const file = await client.chats.getDeliverable(message, 0);
+      setText(await file.text());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not read the file.');
+    }
+  }
+
+  const deliverable = message.deliverable?.[0];
+  if (!deliverable) return null;
+  return (
+    <>
+      <button type="button" onClick={readFile}>
+        Read {deliverable.filename}
+      </button>
+      {error && <p role="alert">{error}</p>}
+      <pre>{text}</pre>
+    </>
+  );
 }
 ```
 
-The URL needs the caller's credential, so a plain `<a href>` only works if the browser
-will attach one. Otherwise fetch it with the client's auth and hand the page a blob URL.
+The returned `File` provides `name`, `type`, and `size`. Use `.text()` for text
+files, `.arrayBuffer()` for binary content, or `URL.createObjectURL(file)` for
+previewing or downloading. Revoke object URLs when finished using them.
+The SDK handles token refresh and typed API errors, and the hub's inline route
+supports files up to 50 MB.
+
+For a complete download button with loading and error states, see
+[`demo/react/src/Deliverables.tsx`](../demo/react/src/Deliverables.tsx). It uses
+the same SDK method, then saves the returned file with the demo's small
+[`saveFile`](../demo/files.ts) DOM helper. No auth prop or manual fetch is needed.
 
 ## See also
 

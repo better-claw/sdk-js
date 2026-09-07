@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { Conversation } from '../src/conversation.js';
 import { ChatStore } from '../src/store/chat-store.js';
-import { TurnTimeoutError } from '../src/http/errors.js';
+import { NotFoundError, PaymentRequiredError, TurnTimeoutError } from '../src/http/errors.js';
 import type { ChatMessage, ChatWithMessages } from '../src/protocol/index.js';
 
 const message = (over: Partial<ChatMessage> = {}): ChatMessage => ({
@@ -44,6 +44,31 @@ describe('Conversation', () => {
   afterEach(() => vi.useRealTimers());
 
   describe('send', () => {
+    it.each([
+      new NotFoundError('Chat not found'),
+      new PaymentRequiredError('Out of credits'),
+      new TypeError('Failed to fetch'),
+    ])('leaves sending after a rejected request and allows retry: %s', async (error) => {
+      const { chats, store, convo } = setup();
+      store.applyFetchedChat(chatWith([]));
+      chats.sendMessage.mockRejectedValueOnce(error);
+      const statuses: string[] = [];
+      convo.on('status', (status) => statuses.push(status));
+
+      await expect(convo.send('hello')).rejects.toBe(error);
+      expect(convo.status).toBe('error');
+      expect(statuses).toEqual(['sending', 'error']);
+      await vi.advanceTimersByTimeAsync(11_000);
+      expect(convo.status).toBe('error');
+
+      const retry = convo.send('try again');
+      await vi.advanceTimersByTimeAsync(0);
+      expect(convo.status).toBe('sending');
+      store.apply({ type: 'message_upserted', chatId: 'c-1', message: message({ status: 'complete' }) });
+      await expect(retry).resolves.toMatchObject({ status: 'complete' });
+      expect(convo.status).toBe('complete');
+    });
+
     it('resolves only once the turn reaches a terminal state', async () => {
       const { store, convo } = setup();
       store.applyFetchedChat(chatWith([message()]));

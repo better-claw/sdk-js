@@ -208,13 +208,30 @@ streaming frame.
 
 ### End-to-end
 
+Start either demo using the [demo setup](../demo/README.md#run-with-a-live-api).
+For the mocked tests, only `VITE_BC_API_URL` needs to be set to a valid origin;
+all hub HTTP and WebSocket traffic is intercepted, so no API key or live agent
+is needed.
+
 ```bash
-BC_DEMO_URL=http://localhost:5173 BC_E2E_AGENT=<agent-id> pnpm test:e2e
+BC_DEMO_URL=http://localhost:5173 pnpm exec playwright test e2e/files.spec.ts e2e/chat-recovery.spec.ts
 ```
 
-Requires a real hub and a live agent. It streams an actual reply, asserts that `bc_sk_`
-appears in neither the DOM nor `localStorage`, and reloads mid-turn to confirm the stream
-resumes without duplicating text.
+These tests cover saved-chat recovery, failed-send retries, generated-file
+contents and filenames, download errors, token refresh, and reloads. Use
+`BC_DEMO_URL=http://localhost:5174` for the Vue demo. Shared session and download
+helpers live in [`e2e/helpers.ts`](../e2e/helpers.ts).
+
+Run the separate live suite with a real API key and agent configured on the demo:
+
+```bash
+BC_DEMO_URL=http://localhost:5173 BC_E2E_AGENT="Content Writer" pnpm exec playwright test e2e/demo.spec.ts
+```
+
+`BC_E2E_AGENT` is the agent's displayed name in the selector, not its ID. This
+suite streams an actual reply, checks API-key isolation, recovers a missing
+saved chat, generates and downloads a CSV, and reloads mid-turn to check
+resumption without duplicate text. `pnpm test:e2e` runs both suites.
 
 ## See also
 
