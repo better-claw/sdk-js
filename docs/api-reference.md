@@ -7,6 +7,7 @@ Every exported symbol, by entry point. Protocol types live in
 - [`@better-claw/sdk/server`](#better-clawsdkserver) — Node only
 - [`@better-claw/sdk/react`](#better-clawsdkreact)
 - [`@better-claw/sdk/vue`](#better-clawsdkvue)
+- [`@better-claw/sdk/utilities`](#better-clawsdkutilities) — Markdown rendering
 - [Protocol types](api-reference-protocol.md) — wire types and constants
 
 ---
@@ -766,6 +767,35 @@ Same lifecycle as the React hook: hydrate, then resume. The `chatId` watcher run
 `immediate: true`; everything is torn down in `onScopeDispose`.
 
 **There is no `useWorkspaces` in the Vue adapter** — use `client.workspaces.list()`.
+
+---
+
+## `@better-claw/sdk/utilities`
+
+Standalone helpers for browsers and Node. The Markdown parser is only loaded
+through this entry point, so importing the client or framework adapters does not
+add it to your browser bundle. It remains part of the npm installation.
+
+### `markdownToHtml`
+
+```ts
+function markdownToHtml(markdown: string): string;
+```
+
+Converts Markdown into an HTML fragment synchronously, without a client.
+Works in browsers and Node. Uses micromark with CommonMark syntax plus tables and
+strikethrough. Empty or whitespace-only input returns an empty string.
+
+Embedded HTML is escaped, and unsafe link/image URLs such as `javascript:` are
+replaced with empty URLs. Code blocks are escaped and include a `language-*` class
+when a language is specified; syntax highlighting and CSS are left to the app.
+
+```ts
+import { markdownToHtml } from '@better-claw/sdk/utilities';
+
+const html = markdownToHtml('Hello, **world**!');
+// '<p>Hello, <strong>world</strong>!</p>'
+```
 
 ---
 

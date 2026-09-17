@@ -201,6 +201,24 @@ See the [React example](docs/react.md#rendering-deliverables) for reading conten
 in your app and the [demo download component](demo/react/src/Deliverables.tsx)
 for saving the same file in the browser.
 
+## Rendering Markdown
+
+```ts
+import { markdownToHtml } from '@better-claw/sdk/utilities';
+
+const html = markdownToHtml('# Hello\n\n**Welcome** to BetterClaw.');
+// '<h1>Hello</h1>\n<p><strong>Welcome</strong> to BetterClaw.</p>'
+```
+
+Returns an HTML fragment synchronously in browsers and Node. Supports CommonMark
+syntax, tables, and strikethrough using micromark. Embedded HTML is escaped, and
+unsafe link/image URLs such as `javascript:` are cleared. See the
+[API reference](docs/api-reference.md#markdowntohtml).
+
+The parser is only included in your browser bundle when you import from
+`@better-claw/sdk/utilities`; the main SDK, React, and Vue entry points do not load it.
+The npm installation still includes the parser dependency.
+
 ## Demos
 
 [`demo/react`](demo/react) and [`demo/vue`](demo/vue) are the same chat app

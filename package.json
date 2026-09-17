@@ -45,6 +45,11 @@
       "import": "./dist/vue.js",
       "require": "./dist/vue.cjs"
     },
+    "./utilities": {
+      "types": "./dist/utilities.d.ts",
+      "import": "./dist/utilities.js",
+      "require": "./dist/utilities.cjs"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -60,6 +65,7 @@
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:package": "node --test test/package.spec.mjs",
     "test:watch": "vitest",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -84,6 +90,7 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/ws": "^8.5.13",
+    "esbuild": "^0.27.7",
     "eslint": "^9.17.0",
     "playwright": "^1.62.1",
     "prettier": "^3.4.2",
@@ -99,5 +106,10 @@
   "publishConfig": {
     "access": "public"
   },
-  "packageManager": "pnpm@9.15.0"
+  "packageManager": "pnpm@9.15.0",
+  "dependencies": {
+    "micromark": "^4.0.2",
+    "micromark-extension-gfm-strikethrough": "^2.1.0",
+    "micromark-extension-gfm-table": "^2.1.2"
+  }
 }

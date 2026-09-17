@@ -9,15 +9,16 @@ New here? Start with [Getting started](getting-started.md), then read
 
 ## Which entry point?
 
-The package has four. They are separate on purpose: `ApiKeyAuth` lives behind `/server`
+The package has five. They are separate on purpose: `ApiKeyAuth` lives behind `/server`
 so it is structurally unreachable from a browser bundle rather than merely discouraged.
 
-| Import from               | Runs in     | Contains                                                                              |
-| ------------------------- | ----------- | ------------------------------------------------------------------------------------- |
-| `@better-claw/sdk`        | Anywhere    | `BetterClawClient`, `Conversation`, `SessionTokenAuth`, `ChatStore`, errors, types    |
-| `@better-claw/sdk/server` | Node only   | `createServerClient`, `mintSessionToken`, `ApiKeyAuth` — anything holding the raw key |
-| `@better-claw/sdk/react`  | React >= 18 | `BetterClawProvider`, `useChat`, `useChats`, `useAgents`, `useWorkspaces`             |
-| `@better-claw/sdk/vue`    | Vue >= 3.4  | `createBetterClaw`, `useChat`, `useChats`, `useAgents`                                |
+| Import from                  | Runs in     | Contains                                                                              |
+| ---------------------------- | ----------- | ------------------------------------------------------------------------------------- |
+| `@better-claw/sdk`           | Anywhere    | `BetterClawClient`, `Conversation`, `SessionTokenAuth`, `ChatStore`, errors, types    |
+| `@better-claw/sdk/server`    | Node only   | `createServerClient`, `mintSessionToken`, `ApiKeyAuth` — anything holding the raw key |
+| `@better-claw/sdk/react`     | React >= 18 | `BetterClawProvider`, `useChat`, `useChats`, `useAgents`, `useWorkspaces`             |
+| `@better-claw/sdk/vue`       | Vue >= 3.4  | `createBetterClaw`, `useChat`, `useChats`, `useAgents`                                |
+| `@better-claw/sdk/utilities` | Anywhere    | `markdownToHtml` — Markdown rendering, loaded separately from the client              |
 
 ## Guides
 
@@ -36,7 +37,7 @@ so it is structurally unreachable from a browser bundle rather than merely disco
 
 | Page                                        | What it covers                                                                 |
 | ------------------------------------------- | ------------------------------------------------------------------------------ |
-| [API reference](api-reference.md)           | Every exported symbol from all four entry points, with signatures and defaults |
+| [API reference](api-reference.md)           | Every exported symbol from all five entry points, with signatures and defaults |
 | [Protocol types](api-reference-protocol.md) | The wire types and constants: `ChatMessage`, `ChatEvent`, `CLOSE_CODES`, …     |
 
 ## Also worth reading
