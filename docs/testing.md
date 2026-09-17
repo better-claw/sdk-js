@@ -189,6 +189,11 @@ Two things to remember:
 pnpm install && pnpm build && pnpm test
 ```
 
+Run `pnpm test:package` after `pnpm build` to check the published entry points.
+These tests verify ESM and CommonJS utility imports, keep the Markdown parser out
+of core/React/Vue bundles, and enforce gzip budgets of 5.5 KB for client plus auth
+and 20 KB for the Markdown utility. CI runs these checks after building the SDK.
+
 Vitest runs in a `node` environment over `src/**/*.spec.ts` and `test/**/*.spec.ts`. The
 Playwright suite in [`e2e/`](../e2e/) is excluded and opt-in.
 
