@@ -45,6 +45,11 @@
       "import": "./dist/vue.js",
       "require": "./dist/vue.cjs"
     },
+    "./utilities": {
+      "types": "./dist/utilities.d.ts",
+      "import": "./dist/utilities.js",
+      "require": "./dist/utilities.cjs"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -99,5 +104,10 @@
   "publishConfig": {
     "access": "public"
   },
-  "packageManager": "pnpm@9.15.0"
+  "packageManager": "pnpm@9.15.0",
+  "dependencies": {
+    "micromark": "^4.0.2",
+    "micromark-extension-gfm-strikethrough": "^2.1.0",
+    "micromark-extension-gfm-table": "^2.1.2"
+  }
 }
